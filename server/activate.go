@@ -104,6 +104,14 @@ func (p *Plugin) OnActivate() error {
 			return err
 		}
 
+		recorderVersion, ok := manifest.Props["calls_recorder_version"].(string)
+		if !ok {
+			err = fmt.Errorf("failed to get recorder version from manifest")
+			p.LogError(err.Error())
+			return err
+		}
+		recordingJobRunner = "mattermost/calls-recorder:" + recorderVersion
+
 		go func() {
 			p.LogDebug("updating job runner")
 
@@ -164,6 +172,7 @@ func (p *Plugin) OnActivate() error {
 	}
 
 	rtcServerConfig := rtc.ServerConfig{
+		ICEAddressUDP:   cfg.UDPServerAddress,
 		ICEPortUDP:      *cfg.UDPServerPort,
 		ICEHostOverride: cfg.ICEHostOverride,
 		ICEServers:      rtc.ICEServers(cfg.getICEServers(false)),
